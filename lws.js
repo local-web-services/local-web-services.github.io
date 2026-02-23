@@ -3,6 +3,10 @@
 
   function detectLanguage(text) {
     const t = text.trim();
+    // JavaScript (CommonJS): require() is unambiguous
+    if (/\brequire\s*\(/.test(t)) {
+      return 'javascript';
+    }
     // TypeScript: TS-specific syntax
     if (/\b(interface |const |let |var |async |await |import\s+\{|from\s+'|LwsSession|session\.client<|\.assertItem|beforeAll|afterAll|beforeEach)\b/.test(t)) {
       return 'typescript';
