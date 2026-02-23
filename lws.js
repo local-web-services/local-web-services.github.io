@@ -3,6 +3,14 @@
 
   function detectLanguage(text) {
     const t = text.trim();
+    // Go: func keyword with test/factory patterns or := short declaration
+    if (/\bfunc\s+(Test\w+|New\w*|From\w*)\s*\(|\bpackage\s+\w+|:=/.test(t)) {
+      return 'go';
+    }
+    // Java: JUnit annotations or AWS SDK v2 Java patterns
+    if (/@(Test|BeforeAll|AfterAll|BeforeEach|AfterEach)\b|assertEquals\s*\(|\bLwsSession\.(fromHcl|create)\b/.test(t)) {
+      return 'java';
+    }
     // JavaScript (CommonJS): require() is unambiguous
     if (/\brequire\s*\(/.test(t)) {
       return 'javascript';

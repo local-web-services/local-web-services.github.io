@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Java SDK - Local Web Services</title>
+  <meta name="description" content="local-web-services-java-sdk: Java and Kotlin testing SDK for AWS services. Pre-configured AWS SDK v2 clients, JUnit 5 integration, and subprocess-based ldk dev integration.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-logo">Local Web Services</a>
+      <ul class="nav-links">
+        <li><a href="getting-started.html">Get Started</a></li>
+        <li><a href="sdks.html" class="nav-active">SDKs</a></li>
+        <li><a href="services.html">Cloud Emulation</a></li>
+        <li><a href="mocking.html">Mocking Services</a></li>
+        <li><a href="chaos.html">Chaos Engineering</a></li>
+        <li><a href="cli.html">CLI</a></li>
+        <li><a href="https://github.com/local-web-services/local-web-services" class="nav-github">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="page-header">
+    <div class="container">
+      <h1>Java SDK</h1>
+      <p class="section-lead">AWS service testing for Java and Kotlin. Spawns <code>ldk dev</code> as a subprocess and provides pre-configured AWS SDK v2 clients pointing at local emulators. JUnit 5 integration with try-with-resources lifecycle management.</p>
+      <div style="display: flex; gap: 16px; justify-content: center; margin-top: 24px; flex-wrap: wrap;">
+        <a href="https://github.com/local-web-services/local-web-services-java-sdk" class="btn btn-primary">GitHub</a>
+        <a href="https://github.com/local-web-services/local-web-services-sdk-java-example-project" class="btn btn-secondary">Example Project</a>
+        <a href="sdks.html" class="btn btn-secondary">All SDKs</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Quick Start -->
+  <section class="section">
+    <div class="container">
+      <h2>Quick Start</h2>
+      <p class="section-lead">Add the dependency, create a session in <code>@BeforeAll</code>, and write JUnit 5 tests. Local services start as a subprocess — your AWS SDK v2 clients are pre-configured to point at them.</p>
+
+      <div class="steps" style="max-width: 900px;">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Add dependency</h3>
+            <div class="code-block">
+              <code>// build.gradle
+repositories {
+    mavenCentral()
+    maven {
+        name = 'GitHubPackages'
+        url = uri('https://maven.pkg.github.com/local-web-services/local-web-services-java-sdk')
+        credentials {
+            username = System.getenv('GITHUB_ACTOR') ?: project.findProperty('gpr.user') ?: ''
+            password = System.getenv('GITHUB_TOKEN') ?: project.findProperty('gpr.key') ?: ''
+        }
+    }
+}
+
+dependencies {
+    testImplementation 'io.localwebservices:local-web-services-java-sdk:0.1.0'
+}
+
+// also requires local-web-services (Python) for ldk dev:
+// pip install local-web-services</code>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Write your test</h3>
+            <div class="code-block">
+              <code>// OrderProcessorTest.java
+import io.localwebservices.lws.LwsSession;
+import org.junit.jupiter.api.*;
+import software.amazon.awssdk.services.sfn.SfnClient;
+import software.amazon.awssdk.services.sfn.model.*;
+
+class OrderProcessorTest {
+
+    static LwsSession session;
+    static SfnClient sfnClient;
+    static String stateMachineArn;
+
+    @BeforeAll
+    static void setUp() throws Exception {
+        // Start ldk dev and discover resources from terraform/
+        session = LwsSession.fromHcl("terraform");
+        sfnClient = session.sfnClient();
+
+        // Resolve the state machine ARN
+        stateMachineArn = sfnClient
+            .listStateMachines(ListStateMachinesRequest.builder().build())
+            .stateMachines().get(0).stateMachineArn();
+    }
+
+    @AfterAll
+    static void tearDown() {
+        session.close();
+    }
+
+    @Test
+    void processOrder_runsStateMachineAndReturnsResult() throws Exception {
+        OrderProcessor processor = new OrderProcessor(sfnClient);
+
+        Map<String, Object> result = processor.processOrder("order-001", stateMachineArn);
+
+        assertEquals("order-001", result.get("orderId"));
+    }
+}</code>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Run your tests</h3>
+            <div class="code-block">
+              <code>./gradlew test</code>
+            </div>
+            <p style="margin-top: 12px; color: var(--color-text-muted);">The session starts <code>ldk dev</code> in <code>@BeforeAll</code> and waits for services to be ready. <code>session.close()</code> in <code>@AfterAll</code> stops the subprocess. <code>LwsSession</code> also implements <code>AutoCloseable</code> for try-with-resources use.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resource Declaration -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2>Resource Declaration</h2>
+      <p class="section-lead">Use <code>LwsSession.fromHcl</code> to auto-discover resources from Terraform, or declare them explicitly with <code>LwsSession.create</code>.</p>
+
+      <div class="comparison comparison--code">
+        <div class="comparison-col">
+          <h3>Auto-discover from Terraform</h3>
+          <div class="code-block" style="margin-top: 16px;">
+            <code>// Reads .tf files in "terraform/", starts ldk dev,
+// and pre-creates all declared resources
+try (LwsSession session = LwsSession.fromHcl("terraform")) {
+    SfnClient sfn = session.sfnClient();
+    // state machine already exists — run your test
+}</code>
+          </div>
+        </div>
+        <div class="comparison-col">
+          <h3>Explicit declaration</h3>
+          <div class="code-block" style="margin-top: 16px;">
+            <code>SessionSpec spec = new SessionSpec()
+    .withTable(new TableSpec("Orders", "id"))
+    .withQueue("OrderQueue")
+    .withStateMachine(
+        new StateMachineSpec("OrderProcessor", definitionJson)
+    );
+
+try (LwsSession session = LwsSession.create(spec)) {
+    DynamoDbClient dynamo = session.dynamoDbClient();
+    SqsClient sqs = session.sqsClient();
+    SfnClient sfn = session.sfnClient();
+    // run your tests
+}</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Session API -->
+  <section class="section">
+    <div class="container">
+      <h2>LwsSession API</h2>
+      <p class="section-lead">All factory methods block until <code>ldk dev</code> is ready and all resources have been created.</p>
+
+      <h3 class="section-subheading section-subheading--primary">Factory methods</h3>
+      <div class="code-block config-example">
+        <code>import io.localwebservices.lws.LwsSession;
+import io.localwebservices.lws.SessionSpec;
+import io.localwebservices.lws.TableSpec;
+import io.localwebservices.lws.StateMachineSpec;
+
+// Auto-discover from Terraform .tf files
+LwsSession session = LwsSession.fromHcl("../my-terraform-project");
+
+// Explicit resource declaration
+SessionSpec spec = new SessionSpec()
+    .withTable(new TableSpec("Orders", "id"))
+    .withTable(new TableSpec("Products", "sku", "version"))
+    .withQueue("OrderQueue")
+    .withQueue("DeadLetterQueue")
+    .withStateMachine(new StateMachineSpec("OrderProcessor", definitionJson));
+
+LwsSession session = LwsSession.create(spec);
+
+// Always close after your tests (or use try-with-resources)
+session.close();</code>
+      </div>
+
+      <h3 class="section-subheading section-subheading--primary">Client methods</h3>
+      <div class="code-block config-example">
+        <code>DynamoDbClient        dynamo  = session.dynamoDbClient();
+SqsClient             sqs     = session.sqsClient();
+S3Client              s3      = session.s3Client();
+SnsClient             sns     = session.snsClient();
+SfnClient             sfn     = session.sfnClient();
+SsmClient             ssm     = session.ssmClient();
+SecretsManagerClient  secrets = session.secretsManagerClient();
+
+String queueUrl = session.queueUrl("OrderQueue");  // local SQS URL
+int    port     = session.portFor("dynamodb");      // port number</code>
+      </div>
+    </div>
+  </section>
+
+  <!-- Supported services -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2>Supported Services</h2>
+      <p class="section-lead">Pre-configured clients for all major AWS services supported by Local Web Services.</p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>DynamoDB</h3>
+          <p><code>session.dynamoDbClient()</code> — returns a pre-configured <code>DynamoDbClient</code> pointed at the local emulator. Supports all standard DynamoDB operations.</p>
+        </div>
+        <div class="feature-card">
+          <h3>SQS</h3>
+          <p><code>session.sqsClient()</code> — returns a pre-configured <code>SqsClient</code>. Use <code>session.queueUrl(name)</code> to resolve local queue URLs.</p>
+        </div>
+        <div class="feature-card">
+          <h3>S3</h3>
+          <p><code>session.s3Client()</code> — returns a <code>S3Client</code> configured for path-style access against the local S3 emulator.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Step Functions</h3>
+          <p><code>session.sfnClient()</code> — returns a pre-configured <code>SfnClient</code>. State machines declared in <code>SessionSpec</code> are created and ready before your test body runs.</p>
+        </div>
+        <div class="feature-card">
+          <h3>SNS</h3>
+          <p><code>session.snsClient()</code> — returns a pre-configured <code>SnsClient</code> for publishing to topics and managing subscriptions locally.</p>
+        </div>
+        <div class="feature-card">
+          <h3>SSM &amp; Secrets Manager</h3>
+          <p><code>session.ssmClient()</code> and <code>session.secretsManagerClient()</code> for parameter store and secrets testing.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <a href="index.html" class="nav-logo">Local Web Services</a>
+          <p>The fastest feedback loop for cloud-native development, for humans and AI alike</p>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/local-web-services/local-web-services">GitHub</a>
+          <a href="https://github.com/local-web-services/local-web-services-java-sdk">Java SDK</a>
+          <a href="https://github.com/local-web-services/local-web-services-sdk-java-example-project">Example Project</a>
+          <a href="https://github.com/local-web-services/local-web-services/issues">Issues</a>
+        </div>
+      </div>
+      <p class="footer-copy">Open source under the MIT License.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-groovy.min.js"></script>
+  <script src="lws.js"></script>
+</body>
+</html>
