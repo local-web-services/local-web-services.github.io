@@ -17,7 +17,7 @@
         <li><a href="getting-started.html">Get Started</a></li>
         <li><a href="sdks.html">SDKs</a></li>
         <li><a href="services.html">Cloud Emulation</a></li>
-        <li><a href="mocking.html">Mocking Services</a></li>
+        <li><a href="faking.html">Faking Services</a></li>
         <li><a href="chaos.html">Chaos Engineering</a></li>
         <li><a href="cli.html" class="nav-active">CLI</a></li>
         <li><a href="https://github.com/local-web-services/local-web-services" class="nav-github">GitHub</a></li>
@@ -109,7 +109,7 @@ uvx --from local-web-services ldk setup lambda --runtime python3.12</code></div>
       <div class="lws-command-grid">
         <div class="lws-command">
           <h4>lws init</h4>
-          <p>Initialize Claude Code integration. Creates CLAUDE.md context and slash commands for AI-assisted mock and chaos workflows.</p>
+          <p>Initialize Claude Code integration. Creates CLAUDE.md context and slash commands for AI-assisted fake and chaos workflows.</p>
           <div>
             <span class="subcmd">--project-dir</span>
           </div>
@@ -258,8 +258,8 @@ uvx --from local-web-services ldk setup lambda --runtime python3.12</code></div>
         </div>
 
         <div class="lws-command">
-          <h4>lws mock</h4>
-          <p>Mock server management. Create and manage mock HTTP/GraphQL/gRPC servers for external API dependencies.</p>
+          <h4>lws fake</h4>
+          <p>Fake server management. Create and manage fake HTTP/GraphQL/gRPC servers for external API dependencies.</p>
           <div>
             <span class="subcmd">create</span>
             <span class="subcmd">delete</span>
@@ -272,29 +272,29 @@ uvx --from local-web-services ldk setup lambda --runtime python3.12</code></div>
             <span class="subcmd">chaos</span>
             <span class="subcmd">invoke</span>
           </div>
-          <div class="code-block" style="margin-top: 12px;"><code># Create a mock server
-uvx --from local-web-services lws mock create --name stripe-api
+          <div class="code-block" style="margin-top: 12px;"><code># Create a fake server
+uvx --from local-web-services lws fake create --name stripe-api
 
 # Add a route
-uvx --from local-web-services lws mock add-route \
+uvx --from local-web-services lws fake add-route \
   --name stripe-api \
   --method POST --path /v1/charges \
   --status 200 --body '{"id": "ch_{{uuid}}"}'
 
 # Import from OpenAPI spec
-uvx --from local-web-services lws mock import-spec \
+uvx --from local-web-services lws fake import-spec \
   --name stripe-api \
   --spec openapi.yaml
 
 # Enable chaos testing
-uvx --from local-web-services lws mock chaos \
+uvx --from local-web-services lws fake chaos \
   --name stripe-api \
   --error-rate 0.1</code></div>
         </div>
 
         <div class="lws-command">
-          <h4>lws aws-mock</h4>
-          <p>AWS operation mocking. Override individual AWS API operations with custom responses.</p>
+          <h4>lws aws-fake</h4>
+          <p>AWS operation faking. Override individual AWS API operations with custom responses.</p>
           <div>
             <span class="subcmd">create</span>
             <span class="subcmd">delete</span>
@@ -305,22 +305,22 @@ uvx --from local-web-services lws mock chaos \
             <span class="subcmd">enable</span>
             <span class="subcmd">disable</span>
           </div>
-          <div class="code-block" style="margin-top: 12px;"><code># Create an AWS mock for S3
-uvx --from local-web-services lws aws-mock create my-s3-mock --service s3
+          <div class="code-block" style="margin-top: 12px;"><code># Create an AWS fake for S3
+uvx --from local-web-services lws aws-fake create my-s3-fake --service s3
 
-# Mock a DynamoDB GetItem with a helper
-uvx --from local-web-services lws aws-mock add-operation my-ddb-mock \
+# Fake a DynamoDB GetItem with a helper
+uvx --from local-web-services lws aws-fake add-operation my-ddb-fake \
   --operation get-item \
   --item '{"id": "123", "name": "test"}'
 
-# Mock an S3 GetObject
-uvx --from local-web-services lws aws-mock add-operation my-s3-mock \
+# Fake an S3 GetObject
+uvx --from local-web-services lws aws-fake add-operation my-s3-fake \
   --operation get-object \
   --body-string "Hello from S3"
 
 # Enable/disable at runtime
-uvx --from local-web-services lws aws-mock enable s3
-uvx --from local-web-services lws aws-mock disable s3</code></div>
+uvx --from local-web-services lws aws-fake enable s3
+uvx --from local-web-services lws aws-fake disable s3</code></div>
         </div>
 
         <div class="lws-command">
