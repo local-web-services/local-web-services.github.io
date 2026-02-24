@@ -17,7 +17,7 @@
         <li><a href="getting-started.html">Get Started</a></li>
         <li><a href="sdks.html" class="nav-active">SDKs</a></li>
         <li><a href="services.html">Cloud Emulation</a></li>
-        <li><a href="mocking.html">Mocking Services</a></li>
+        <li><a href="faking.html">Faking Services</a></li>
         <li><a href="chaos.html">Chaos Engineering</a></li>
         <li><a href="cli.html">CLI</a></li>
         <li><a href="https://github.com/local-web-services/local-web-services" class="nav-github">GitHub</a></li>
@@ -318,33 +318,33 @@ await bucket.assertObjectCount({ expected: 5, prefix: 'receipts/' });</code>
     </div>
   </section>
 
-  <!-- Mocking -->
+  <!-- Faking -->
   <section class="section">
     <div class="container">
-      <h2>Operation Mocking</h2>
+      <h2>Operation Faking</h2>
       <p class="section-lead">Override any AWS operation response with a fluent builder. No changes to application code needed.</p>
 
       <div class="code-block config-example">
         <code>// Inject throttling
-await session.mock('dynamodb').operation('PutItem').respond({
+await session.fake('dynamodb').operation('PutItem').respond({
   status: 400,
   body: { __type: 'ProvisionedThroughputExceededException' },
 });
 
 // Add artificial latency
-await session.mock('sqs').operation('SendMessage').respond({
+await session.fake('sqs').operation('SendMessage').respond({
   status: 200,
   delayMs: 500,
 });
 
 // Match on a specific request header
-await session.mock('s3')
+await session.fake('s3')
   .operation('GetObject')
   .withHeader('x-request-id', 'test-123')
   .respond({ status: 403, body: { __type: 'AccessDenied' } });
 
-// Clear all mocks for a service
-await session.mock('dynamodb').clear();</code>
+// Clear all fakes for a service
+await session.fake('dynamodb').clear();</code>
       </div>
     </div>
   </section>

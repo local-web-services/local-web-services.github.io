@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mocking Services - Local Web Services</title>
-  <meta name="description" content="Mock AWS service operations and external API dependencies. Override AWS responses at the operation level, or create mock HTTP/GraphQL/gRPC servers for third-party APIs.">
+  <title>Faking Services - Local Web Services</title>
+  <meta name="description" content="Fake AWS service operations and external API dependencies. Override AWS responses at the operation level, or create fake HTTP/GraphQL/gRPC servers for third-party APIs.">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
 </head>
@@ -17,7 +17,7 @@
         <li><a href="getting-started.html">Get Started</a></li>
         <li><a href="sdks.html">SDKs</a></li>
         <li><a href="services.html">Cloud Emulation</a></li>
-        <li><a href="mocking.html" class="nav-active">Mocking Services</a></li>
+        <li><a href="faking.html" class="nav-active">Faking Services</a></li>
         <li><a href="chaos.html">Chaos Engineering</a></li>
         <li><a href="cli.html">CLI</a></li>
         <li><a href="https://github.com/local-web-services/local-web-services" class="nav-github">GitHub</a></li>
@@ -27,25 +27,25 @@
 
   <header class="page-header">
     <div class="container">
-      <h1>Mocking Services</h1>
-      <p class="section-lead">Override AWS service responses at the operation level, or create mock servers for external API dependencies. Control exactly what your application sees &mdash; without changing your code.</p>
+      <h1>Faking Services</h1>
+      <p class="section-lead">Override AWS service responses at the operation level, or create fake servers for external API dependencies. Control exactly what your application sees &mdash; without changing your code.</p>
     </div>
   </header>
 
   <!-- ============================================ -->
-  <!-- AWS SERVICE MOCKING                          -->
+  <!-- AWS SERVICE FAKING                           -->
   <!-- ============================================ -->
 
   <section class="section section-alt">
     <div class="container">
-      <h2>AWS Service Mocking</h2>
-      <p class="section-lead">Override individual AWS API operations with custom responses. Mocked operations bypass the real emulation entirely &mdash; your code gets back exactly what you define.</p>
+      <h2>AWS Service Faking</h2>
+      <p class="section-lead">Override individual AWS API operations with custom responses. Faked operations bypass the real emulation entirely &mdash; your code gets back exactly what you define.</p>
 
       <div class="feature-grid" style="grid-template-columns: 1fr 1fr; max-width: 900px; margin: 0 auto;">
         <div class="feature-card">
           <div class="feature-icon">&#9881;</div>
           <h3>Operation-Level Control</h3>
-          <p>Mock specific operations like <code>GetItem</code> or <code>ReceiveMessage</code> while leaving the rest of the service running normally.</p>
+          <p>Fake specific operations like <code>GetItem</code> or <code>ReceiveMessage</code> while leaving the rest of the service running normally.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">&#9889;</div>
@@ -58,14 +58,14 @@
 
   <section class="section">
     <div class="container">
-      <h3 class="section-subheading section-subheading--large" style="margin-top: 0;">How AWS Mocking Works</h3>
+      <h3 class="section-subheading section-subheading--large" style="margin-top: 0;">How AWS Faking Works</h3>
       <div class="steps">
         <div class="step">
           <div class="step-number">1</div>
           <div class="step-content">
-            <h3>Create a Mock</h3>
-            <p>Create a named mock targeting a specific AWS service.</p>
-            <div class="code-block"><code>uvx --from local-web-services lws aws-mock create my-s3-mock --service s3</code></div>
+            <h3>Create a Fake</h3>
+            <p>Create a named fake targeting a specific AWS service.</p>
+            <div class="code-block"><code>uvx --from local-web-services lws aws-fake create my-s3-fake --service s3</code></div>
           </div>
         </div>
         <div class="step">
@@ -73,18 +73,18 @@
           <div class="step-content">
             <h3>Add Operation Rules</h3>
             <p>Define what specific operations should return. Use service-aware helpers for correctly formatted responses.</p>
-            <div class="code-block"><code># Mock a DynamoDB GetItem with a helper
-uvx --from local-web-services lws aws-mock add-operation my-ddb-mock \
+            <div class="code-block"><code># Fake a DynamoDB GetItem with a helper
+uvx --from local-web-services lws aws-fake add-operation my-ddb-fake \
   --operation get-item \
   --item '{"id": "123", "name": "test"}'
 
-# Mock an S3 GetObject with string content
-uvx --from local-web-services lws aws-mock add-operation my-s3-mock \
+# Fake an S3 GetObject with string content
+uvx --from local-web-services lws aws-fake add-operation my-s3-fake \
   --operation get-object \
   --body-string "Hello from S3"
 
-# Mock with a raw response
-uvx --from local-web-services lws aws-mock add-operation my-mock \
+# Fake with a raw response
+uvx --from local-web-services lws aws-fake add-operation my-fake \
   --operation list-objects-v2 \
   --status 200 \
   --body-file /path/to/response.xml</code></div>
@@ -94,7 +94,7 @@ uvx --from local-web-services lws aws-mock add-operation my-mock \
           <div class="step-number">3</div>
           <div class="step-content">
             <h3>Requests Are Intercepted</h3>
-            <p>When your code calls a mocked operation, the mock middleware intercepts the request before it reaches the real provider and returns your custom response.</p>
+            <p>When your code calls a faked operation, the fake middleware intercepts the request before it reaches the real provider and returns your custom response.</p>
           </div>
         </div>
       </div>
@@ -161,7 +161,7 @@ uvx --from local-web-services lws aws-mock add-operation my-mock \
       <h3 class="section-subheading">Conditional Matching</h3>
       <p class="section-lead">Match requests by headers to return different responses for different inputs.</p>
       <div class="config-example">
-        <div class="code-block"><code>uvx --from local-web-services lws aws-mock add-operation my-s3-mock \
+        <div class="code-block"><code>uvx --from local-web-services lws aws-fake add-operation my-s3-fake \
   --operation get-object \
   --match-header "x-custom-header=specific-value" \
   --status 200 \
@@ -169,15 +169,15 @@ uvx --from local-web-services lws aws-mock add-operation my-mock \
       </div>
 
       <h3 class="section-subheading">YAML Configuration</h3>
-      <p class="section-lead">AWS mocks are stored in <code>.lws/mocks/&lt;name&gt;/</code> and loaded automatically on startup.</p>
+      <p class="section-lead">AWS fakes are stored in <code>.lws/fakes/&lt;name&gt;/</code> and loaded automatically on startup.</p>
       <div class="config-example">
-        <div class="code-block"><code># .lws/mocks/my-s3-mock/config.yaml
-name: my-s3-mock
+        <div class="code-block"><code># .lws/fakes/my-s3-fake/config.yaml
+name: my-s3-fake
 service: s3
 enabled: true</code></div>
       </div>
       <div class="config-example">
-        <div class="code-block"><code># .lws/mocks/my-s3-mock/operations/get-object.yaml
+        <div class="code-block"><code># .lws/fakes/my-s3-fake/operations/get-object.yaml
 operations:
   - operation: get-object
     match:
@@ -191,37 +191,37 @@ operations:
       </div>
 
       <h3 class="section-subheading">Runtime Control</h3>
-      <p class="section-lead">Enable and disable AWS mocks at runtime without restarting <code>ldk dev</code>.</p>
+      <p class="section-lead">Enable and disable AWS fakes at runtime without restarting <code>ldk dev</code>.</p>
       <div class="config-example">
-        <div class="code-block"><code># Enable/disable mocks for a service
-uvx --from local-web-services lws aws-mock enable s3
-uvx --from local-web-services lws aws-mock disable s3
+        <div class="code-block"><code># Enable/disable fakes for a service
+uvx --from local-web-services lws aws-fake enable s3
+uvx --from local-web-services lws aws-fake disable s3
 
-# Check mock status
-uvx --from local-web-services lws aws-mock status</code></div>
+# Check fake status
+uvx --from local-web-services lws aws-fake status</code></div>
       </div>
     </div>
   </section>
 
   <!-- ============================================ -->
-  <!-- EXTERNAL SERVICE MOCKING                     -->
+  <!-- EXTERNAL SERVICE FAKING                      -->
   <!-- ============================================ -->
 
   <section class="section section-alt">
     <div class="container">
-      <h2>External Service Mocking</h2>
-      <p class="section-lead">Create local mock servers for external API dependencies &mdash; payment processors, third-party services, partner APIs &mdash; so your entire application runs locally without any external calls.</p>
+      <h2>External Service Faking</h2>
+      <p class="section-lead">Create local fake servers for external API dependencies &mdash; payment processors, third-party services, partner APIs &mdash; so your entire application runs locally without any external calls.</p>
 
       <div class="feature-grid" style="grid-template-columns: 1fr 1fr; max-width: 900px; margin: 0 auto;">
         <div class="feature-card">
           <div class="feature-icon">$0</div>
           <h3>No API Costs</h3>
-          <p>Stop burning through sandbox credits and rate limits during development. Mock servers return realistic responses without making real API calls.</p>
+          <p>Stop burning through sandbox credits and rate limits during development. Fake servers return realistic responses without making real API calls.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">&empty;</div>
           <h3>No Credentials Needed</h3>
-          <p>New developers don't need API keys for every third-party service. Mock servers work out of the box with zero configuration.</p>
+          <p>New developers don't need API keys for every third-party service. Fake servers work out of the box with zero configuration.</p>
         </div>
       </div>
     </div>
@@ -229,15 +229,15 @@ uvx --from local-web-services lws aws-mock status</code></div>
 
   <section class="section">
     <div class="container">
-      <h3 class="section-subheading section-subheading--large" style="margin-top: 0;">How External Mocking Works</h3>
+      <h3 class="section-subheading section-subheading--large" style="margin-top: 0;">How External Faking Works</h3>
 
       <div class="steps">
         <div class="step">
           <div class="step-number">1</div>
           <div class="step-content">
-            <h3>Create a Mock Server</h3>
-            <p>Define a mock server for each external dependency. Give it a name and optional base configuration.</p>
-            <div class="code-block"><code>uvx --from local-web-services lws mock create --name stripe-api</code></div>
+            <h3>Create a Fake Server</h3>
+            <p>Define a fake server for each external dependency. Give it a name and optional base configuration.</p>
+            <div class="code-block"><code>uvx --from local-web-services lws fake create --name stripe-api</code></div>
           </div>
         </div>
         <div class="step">
@@ -245,7 +245,7 @@ uvx --from local-web-services lws aws-mock status</code></div>
           <div class="step-content">
             <h3>Add Routes</h3>
             <p>Define the endpoints your code calls, with the responses you want returned. Use CLI commands or YAML configuration.</p>
-            <div class="code-block"><code>uvx --from local-web-services lws mock add-route \
+            <div class="code-block"><code>uvx --from local-web-services lws fake add-route \
   --name stripe-api \
   --method POST --path /v1/charges \
   --status 200 \
@@ -256,14 +256,14 @@ uvx --from local-web-services lws aws-mock status</code></div>
           <div class="step-number">3</div>
           <div class="step-content">
             <h3>Start with ldk dev</h3>
-            <p>Mock servers start automatically alongside your AWS services when you run <code>ldk dev</code>. Each mock gets its own local endpoint.</p>
+            <p>Fake servers start automatically alongside your AWS services when you run <code>ldk dev</code>. Each fake gets its own local endpoint.</p>
           </div>
         </div>
         <div class="step">
           <div class="step-number">4</div>
           <div class="step-content">
             <h3>Point Your Code</h3>
-            <p>Configure your application to use the local mock endpoint instead of the real API. Environment variables are injected automatically for services defined in your IaC.</p>
+            <p>Configure your application to use the local fake endpoint instead of the real API. Environment variables are injected automatically for services defined in your IaC.</p>
           </div>
         </div>
       </div>
@@ -273,7 +273,7 @@ uvx --from local-web-services lws aws-mock status</code></div>
   <section class="section section-alt">
     <div class="container">
       <h2>Protocol Support</h2>
-      <p class="section-lead">Mock servers support the protocols your external dependencies use.</p>
+      <p class="section-lead">Fake servers support the protocols your external dependencies use.</p>
 
       <div class="feature-grid">
         <div class="feature-card">
@@ -298,7 +298,7 @@ uvx --from local-web-services lws aws-mock status</code></div>
   <section class="section">
     <div class="container">
       <h2>Defining Routes</h2>
-      <p class="section-lead">Routes define how your mock server responds to incoming requests. Configure them via CLI or YAML.</p>
+      <p class="section-lead">Routes define how your fake server responds to incoming requests. Configure them via CLI or YAML.</p>
 
       <h3 class="section-subheading">Basic Route</h3>
       <div class="config-example">
@@ -405,15 +405,15 @@ uvx --from local-web-services lws aws-mock status</code></div>
   <section class="section">
     <div class="container">
       <h2>OpenAPI Import</h2>
-      <p class="section-lead">Automatically generate mock routes from existing OpenAPI 3.x or Swagger 2.x specifications.</p>
+      <p class="section-lead">Automatically generate fake routes from existing OpenAPI 3.x or Swagger 2.x specifications.</p>
 
       <div class="steps">
         <div class="step">
           <div class="step-number">1</div>
           <div class="step-content">
             <h3>Import a Spec</h3>
-            <p>Point <code>lws mock import-spec</code> at an OpenAPI file. Routes are generated for every endpoint with example responses from the spec.</p>
-            <div class="code-block"><code>uvx --from local-web-services lws mock import-spec \
+            <p>Point <code>lws fake import-spec</code> at an OpenAPI file. Routes are generated for every endpoint with example responses from the spec.</p>
+            <div class="code-block"><code>uvx --from local-web-services lws fake import-spec \
   --name stripe-api \
   --spec openapi.yaml</code></div>
           </div>
@@ -422,8 +422,8 @@ uvx --from local-web-services lws aws-mock status</code></div>
           <div class="step-number">2</div>
           <div class="step-content">
             <h3>Validate Coverage</h3>
-            <p>Check that your mock covers all the endpoints your code actually calls. The validate command compares your mock routes against the spec and reports missing coverage.</p>
-            <div class="code-block"><code>uvx --from local-web-services lws mock validate \
+            <p>Check that your fake covers all the endpoints your code actually calls. The validate command compares your fake routes against the spec and reports missing coverage.</p>
+            <div class="code-block"><code>uvx --from local-web-services lws fake validate \
   --name stripe-api \
   --spec openapi.yaml</code></div>
           </div>

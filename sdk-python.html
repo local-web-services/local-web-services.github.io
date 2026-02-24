@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Python SDK - Local Web Services</title>
-  <meta name="description" content="local-web-services-python-sdk: in-process AWS service testing for Python. pytest fixtures, DynamoDB/SQS/S3 helpers, mocking, chaos, IAM, and log capture.">
+  <meta name="description" content="local-web-services-python-sdk: in-process AWS service testing for Python. pytest fixtures, DynamoDB/SQS/S3 helpers, faking, chaos, IAM, and log capture.">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
 </head>
@@ -17,7 +17,7 @@
         <li><a href="getting-started.html">Get Started</a></li>
         <li><a href="sdks.html" class="nav-active">SDKs</a></li>
         <li><a href="services.html">Cloud Emulation</a></li>
-        <li><a href="mocking.html">Mocking Services</a></li>
+        <li><a href="faking.html">Faking Services</a></li>
         <li><a href="chaos.html">Chaos Engineering</a></li>
         <li><a href="cli.html">CLI</a></li>
         <li><a href="https://github.com/local-web-services/local-web-services" class="nav-github">GitHub</a></li>
@@ -331,40 +331,40 @@ session.reset()  # clear all tables, queues, buckets</code>
     </div>
   </section>
 
-  <!-- Mocking -->
+  <!-- Faking -->
   <section class="section section-alt">
     <div class="container">
-      <h2>Operation Mocking</h2>
+      <h2>Operation Faking</h2>
       <p class="section-lead">Override specific AWS operation responses with a fluent builder. Inject throttling errors, custom status codes, or delays without changing application code.</p>
 
       <div class="code-block config-example">
         <code># Inject a throttling error
-session.mock("dynamodb").operation("PutItem").respond(
+session.fake("dynamodb").operation("PutItem").respond(
     status=400,
     body={"__type": "ProvisionedThroughputExceededException"},
 )
 
 # Add artificial latency
-session.mock("sqs").operation("SendMessage").respond(status=200, delay_ms=500)
+session.fake("sqs").operation("SendMessage").respond(status=200, delay_ms=500)
 
 # Match on a specific request header
-session.mock("s3")\
+session.fake("s3")\
     .operation("GetObject")\
     .with_header("x-request-id", "test-123")\
     .respond(status=403, body={"__type": "AccessDenied"})
 
 # Shorthand for service errors
-session.mock("dynamodb").operation("DeleteItem").error(
+session.fake("dynamodb").operation("DeleteItem").error(
     error_type="ValidationException",
     message="Item not found",
 )
 
-session.mock("dynamodb").clear()  # remove all mocks for a service</code>
+session.fake("dynamodb").clear()  # remove all fakes for a service</code>
       </div>
 
       <div class="code-block config-example">
         <code>def test_handles_throttling(lws_session):
-    lws_session.mock("dynamodb").operation("PutItem").respond(
+    lws_session.fake("dynamodb").operation("PutItem").respond(
         status=400,
         body={"__type": "ProvisionedThroughputExceededException"},
     )
@@ -374,7 +374,7 @@ session.mock("dynamodb").clear()  # remove all mocks for a service</code>
         create_order("42", "pending")
 
     assert "ProvisionedThroughputExceededException" in str(exc.value)
-    lws_session.mock("dynamodb").clear()</code>
+    lws_session.fake("dynamodb").clear()</code>
       </div>
     </div>
   </section>
